@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>Undercover</title>
+<meta name="description" content="Distribue secrètement les mots de votre partie d'Undercover, autour d'un seul téléphone. 2000 paires bilingues, 100 % hors-ligne.">
+<meta name="theme-color" content="#070d16">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Undercover">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/logo.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ============ ACCUEIL ============ -->
+  <section class="screen is-active" id="screen-home">
+    <div class="screen-body center">
+      <div class="logo">
+        <div class="logo-mark">
+          <img src="icons/logo.svg" alt="Undercover" width="512" height="512"
+               onerror="this.onerror=null;this.src='icons/icon-512.png'">
+        </div>
+        <h1 class="logo-title">Undercover</h1>
+        <p class="logo-sub">Un seul téléphone. Deux mots. Un imposteur.</p>
+      </div>
+
+      <div class="stack">
+        <button class="btn btn-primary btn-xl" data-action="new-game">Nouvelle partie</button>
+        <button class="btn btn-ghost" data-action="open-rules">Comment on joue&nbsp;?</button>
+      </div>
+    </div>
+    <footer class="app-footer">
+      <button class="linkish" data-action="open-about">Version <span id="version-label">1.0</span> · Crédits</button>
+    </footer>
+  </section>
+
+  <!-- ============ CONFIGURATION ============ -->
+  <section class="screen" id="screen-config">
+    <header class="topbar">
+      <button class="icon-btn" data-action="config-back" aria-label="Retour au menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <h2 class="topbar-title">Configuration</h2>
+      <span class="topbar-spacer"></span>
+    </header>
+
+    <div class="screen-body scroll">
+
+      <div class="card">
+        <div class="field-row">
+          <div class="field-label">
+            <span class="field-name">Joueurs</span>
+            <span class="field-hint">de 3 à 20</span>
+          </div>
+          <div class="stepper">
+            <button class="step-btn" data-step="players" data-delta="-1" aria-label="Moins de joueurs">–</button>
+            <output class="step-value" id="players-count">6</output>
+            <button class="step-btn" data-step="players" data-delta="1" aria-label="Plus de joueurs">+</button>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="field-row">
+          <div class="field-label">
+            <span class="field-name">Undercovers</span>
+            <span class="field-hint" id="undercover-hint">max. 2</span>
+          </div>
+          <div class="stepper">
+            <button class="step-btn" data-step="undercovers" data-delta="-1" aria-label="Moins d'undercovers">–</button>
+            <output class="step-value" id="undercover-count">1</output>
+            <button class="step-btn" data-step="undercovers" data-delta="1" aria-label="Plus d'undercovers">+</button>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="section-title">Noms des joueurs</h3>
+      <p class="section-note">Tape sur un nom pour le modifier.</p>
+      <div class="players-list" id="players-list"></div>
+
+      <h3 class="section-title">Thématique</h3>
+      <div class="card card-tight">
+        <div class="select-wrap">
+          <select id="theme-select" class="select" aria-label="Thématique"></select>
+          <svg class="select-caret" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="remaining" id="remaining-label">— / — paires restantes</div>
+      </div>
+
+      <h3 class="section-title">Options</h3>
+      <div class="card card-tight">
+        <label class="switch-row">
+          <span class="switch-text">
+            <span class="switch-name">Les undercovers savent qu'ils le sont</span>
+            <span class="switch-desc">Chaque joueur voit son rôle avec son mot.</span>
+          </span>
+          <input type="checkbox" id="opt-know-role" class="switch-input">
+          <span class="switch" aria-hidden="true"></span>
+        </label>
+        <div class="divider"></div>
+        <label class="switch-row">
+          <span class="switch-text">
+            <span class="switch-name">Les undercovers se connaissent</span>
+            <span class="switch-desc">Ils voient le nom de leurs complices.</span>
+          </span>
+          <input type="checkbox" id="opt-know-allies" class="switch-input">
+          <span class="switch" aria-hidden="true"></span>
+        </label>
+      </div>
+
+      <div class="spacer-lg"></div>
+    </div>
+
+    <div class="screen-foot">
+      <button class="btn btn-primary btn-xl" data-action="start-game">Lancer la partie</button>
+    </div>
+  </section>
+
+  <!-- ============ PASSAGE DU TÉLÉPHONE ============ -->
+  <section class="screen" id="screen-pass">
+    <div class="screen-body center">
+      <img class="pass-logo" src="icons/logo.svg" alt="" aria-hidden="true" width="512" height="512">
+      <div class="progress-pill" id="pass-progress">Joueur 1 / 6</div>
+      <p class="pass-lead">Passez le téléphone à</p>
+      <h2 class="pass-name" id="pass-name">Joueur 1</h2>
+      <p class="pass-warn">Personne d'autre ne doit regarder l'écran.</p>
+      <button class="btn btn-primary btn-xl" data-action="reveal">Découvrir le mot</button>
+    </div>
+  </section>
+
+  <!-- ============ RÉVÉLATION ============ -->
+  <section class="screen" id="screen-reveal">
+    <div class="screen-body center">
+      <div class="reveal-name" id="reveal-name">Joueur 1</div>
+
+      <div class="wordcard" id="wordcard">
+        <div class="wordcard-inner">
+          <div class="wordcard-face wordcard-front">
+            <div class="word-fr" id="word-fr">Chien</div>
+            <div class="word-en" id="word-en">Dog</div>
+            <div class="role-badge" id="role-badge" hidden>CIVIL</div>
+            <div class="allies" id="allies" hidden>
+              <span class="allies-title">Tes complices</span>
+              <span class="allies-names" id="allies-names"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-xl" data-action="hide-word">Masquer le mot</button>
+    </div>
+  </section>
+
+  <!-- ============ FIN DE DISTRIBUTION ============ -->
+  <section class="screen" id="screen-end">
+    <div class="screen-body center">
+      <div class="end-check" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M4 12.5l5.2 5.2L20 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h2 class="end-title">Tout le monde a vu son mot.</h2>
+      <p class="end-sub">Bonne partie&nbsp;!</p>
+      <div class="stack">
+        <button class="btn btn-primary btn-xl" data-action="replay">Rejouer</button>
+        <button class="btn btn-secondary" data-action="edit-settings">Changer les paramètres</button>
+        <button class="btn btn-ghost" data-action="go-home">Menu principal</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ============ FEUILLE MODALE ============ -->
+<div class="sheet-backdrop" id="sheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="sheet-grab" aria-hidden="true"></div>
+    <h3 class="sheet-title" id="sheet-title"></h3>
+    <div class="sheet-content" id="sheet-content"></div>
+    <button class="btn btn-secondary" data-action="close-sheet">Fermer</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="words.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
