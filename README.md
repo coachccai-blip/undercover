@@ -11,7 +11,7 @@ Sur mobile : ouvrir le lien, puis « Ajouter à l'écran d'accueil ». L'applica
 ## Fonctionnalités
 
 - 3 à 20 joueurs, noms éditables, 1 à *n* undercovers (toujours strictement moins de la moitié des joueurs, réajusté automatiquement).
-- **2 000 paires de mots bilingues FR/EN**, réparties en 10 thématiques de 200 paires.
+- **2 000 paires de mots trilingues** (français, anglais, 中文), réparties en 10 thématiques de 200 paires. Chaque carte affiche le mot en français en grand, puis « English / 中文 » en sous-titre.
 - **Aucune répétition** : une paire jouée ne ressort plus tant que son périmètre n'est pas épuisé. Le statut est conservé dans le `localStorage` du téléphone, y compris entre deux sessions. Quand une thématique est terminée, elle se réinitialise seule (message discret).
 - Attribution civil/undercover du mot **tirée au sort à chaque partie** (50/50), rôles **redistribués** à chaque lancement, y compris sur « Rejouer ».
 - Deux options facultatives : *les undercovers savent qu'ils le sont* et *les undercovers se connaissent* (la seconde active implicitement l'affichage du rôle pour les undercovers).
@@ -42,7 +42,7 @@ Le mode « Tout » tire parmi les 2 000 paires, en partageant le même historiqu
 index.html      écrans de l'app (SPA légère, show/hide)
 styles.css      thème sombre bleu nuit / acier, mobile-first
 app.js          logique : configuration, tirage, rôles, persistance
-words.js        banque des 2 000 paires bilingues
+words.js        banque des 2 000 paires trilingues FR/EN/中文
 manifest.json   PWA (nom, icônes, standalone, portrait)
 sw.js           service worker (cache complet hors-ligne)
 icons/          logos PNG (undercover, civil) + icônes PWA 192/512/maskable

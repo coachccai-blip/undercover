@@ -141,8 +141,12 @@
 
     // Le mot des civils est tiré au hasard dans la paire (50/50).
     var flipped = Math.random() < 0.5;
-    var civil = flipped ? { fr: pair[1], en: pair[3] } : { fr: pair[0], en: pair[2] };
-    var under = flipped ? { fr: pair[0], en: pair[2] } : { fr: pair[1], en: pair[3] };
+    var civil = flipped
+      ? { fr: pair[1], en: pair[3], zh: pair[5] }
+      : { fr: pair[0], en: pair[2], zh: pair[4] };
+    var under = flipped
+      ? { fr: pair[0], en: pair[2], zh: pair[4] }
+      : { fr: pair[1], en: pair[3], zh: pair[5] };
 
     return { words: { civil: civil, under: under }, reset: didReset };
   }
@@ -420,6 +424,7 @@
   var revealNameEl = document.getElementById('reveal-name');
   var wordFrEl = document.getElementById('word-fr');
   var wordEnEl = document.getElementById('word-en');
+  var wordZhEl = document.getElementById('word-zh');
   var roleBadgeEl = document.getElementById('role-badge');
   var roleMarkEl = document.getElementById('role-mark');
   var alliesEl = document.getElementById('allies');
@@ -434,6 +439,7 @@
     revealNameEl.textContent = game.names[index];
     wordFrEl.textContent = words.fr;
     wordEnEl.textContent = words.en;
+    wordZhEl.textContent = words.zh;
 
     // Badge de rôle : toujours pour un undercover si l'option est active,
     // « CIVIL » seulement si l'option « savent qu'ils le sont » est cochée.
@@ -470,6 +476,7 @@
     // Efface le mot avant même de changer d'écran.
     wordFrEl.textContent = '';
     wordEnEl.textContent = '';
+    wordZhEl.textContent = '';
     alliesNamesEl.textContent = '';
     roleBadgeEl.hidden = true;
     roleMarkEl.hidden = true;
@@ -508,7 +515,8 @@
     return '<p><strong>Undercover</strong> — version ' + VERSION + '</p>' +
       '<p>Application 100 % hors-ligne : aucune donnée n\'est envoyée, aucun compte, aucun serveur. ' +
       'Seule la liste des paires déjà jouées est conservée sur ce téléphone.</p>' +
-      '<p>Banque de mots bilingue FR/EN répartie en ' + WORD_BANK.length + ' thématiques. ' +
+      '<p>Banque de mots trilingue français / anglais / 中文, répartie en ' +
+      WORD_BANK.length + ' thématiques. ' +
       'Une paire jouée ne ressort pas tant que la thématique n\'est pas épuisée.</p>' +
       '<p><button class="btn btn-secondary" data-action="reset-history" style="width:100%">' +
       'Réinitialiser l\'historique des paires</button></p>';

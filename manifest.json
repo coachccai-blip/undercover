@@ -1,7 +1,7 @@
 {
   "name": "Undercover — distributeur de mots",
   "short_name": "Undercover",
-  "description": "Distribue secrètement les mots de votre partie d'Undercover, autour d'un seul téléphone. 2000 paires bilingues FR/EN, 100 % hors-ligne.",
+  "description": "Distribue secrètement les mots de votre partie d'Undercover, autour d'un seul téléphone. 2000 paires trilingues FR/EN/中文, 100 % hors-ligne.",
   "id": "./",
   "start_url": "./",
   "scope": "./",
