@@ -104,25 +104,6 @@
     return null;
   }
 
-  function totalPairs(themeId) {
-    if (themeId === ALL_THEMES) {
-      return WORD_BANK.reduce(function (sum, theme) { return sum + theme.pairs.length; }, 0);
-    }
-    var theme = themeById(themeId);
-    return theme ? theme.pairs.length : 0;
-  }
-
-  function remainingPairs(themeId) {
-    if (themeId === ALL_THEMES) {
-      return WORD_BANK.reduce(function (sum, theme) {
-        return sum + (theme.pairs.length - playedSet(theme.id).length);
-      }, 0);
-    }
-    var theme = themeById(themeId);
-    if (!theme) return 0;
-    return theme.pairs.length - playedSet(theme.id).length;
-  }
-
   /* ------------------------------------------------------ Tirage de paire */
 
   function candidatesFor(themeId) {
@@ -259,7 +240,6 @@
   var undercoverHintEl = document.getElementById('undercover-hint');
   var playersListEl = document.getElementById('players-list');
   var themeSelectEl = document.getElementById('theme-select');
-  var remainingLabelEl = document.getElementById('remaining-label');
   var optKnowRoleEl = document.getElementById('opt-know-role');
   var optKnowAlliesEl = document.getElementById('opt-know-allies');
 
@@ -290,7 +270,6 @@
 
     renderPlayerRows();
     themeSelectEl.value = config.themeId;
-    renderRemaining();
     optKnowRoleEl.checked = config.knowRole;
     optKnowAlliesEl.checked = config.knowAllies;
   }
@@ -314,12 +293,6 @@
       var index = parseInt(input.getAttribute('data-player'), 10);
       if (document.activeElement !== input) input.value = config.names[index] || '';
     });
-  }
-
-  function renderRemaining() {
-    var remaining = remainingPairs(config.themeId);
-    var total = totalPairs(config.themeId);
-    remainingLabelEl.textContent = remaining + ' / ' + total + ' paires restantes';
   }
 
   function setPlayerCount(count) {
@@ -387,7 +360,6 @@
 
   themeSelectEl.addEventListener('change', function () {
     config.themeId = themeSelectEl.value;
-    renderRemaining();
   });
 
   optKnowRoleEl.addEventListener('change', function () {
@@ -527,13 +499,11 @@
     '<p>Une paire de mots n\'est jamais tirée deux fois tant que la thématique n\'est pas épuisée.</p>';
 
   function aboutHtml() {
-    var total = totalPairs(ALL_THEMES);
-    var remaining = remainingPairs(ALL_THEMES);
     return '<p><strong>Undercover</strong> — version ' + VERSION + '</p>' +
       '<p>Application 100 % hors-ligne : aucune donnée n\'est envoyée, aucun compte, aucun serveur. ' +
       'Seule la liste des paires déjà jouées est conservée sur ce téléphone.</p>' +
-      '<p>Banque de mots : <strong>' + total + ' paires</strong> bilingues FR/EN réparties en ' +
-      WORD_BANK.length + ' thématiques.<br>Restantes non jouées : <strong>' + remaining + '</strong>.</p>' +
+      '<p>Banque de mots bilingue FR/EN répartie en ' + WORD_BANK.length + ' thématiques. ' +
+      'Une paire jouée ne ressort pas tant que la thématique n\'est pas épuisée.</p>' +
       '<p><button class="btn btn-secondary" data-action="reset-history" style="width:100%">' +
       'Réinitialiser l\'historique des paires</button></p>';
   }
@@ -611,7 +581,6 @@
 
       case 'reset-history':
         resetAllThemes();
-        if (config) renderRemaining();
         closeSheet();
         toast('Historique des paires réinitialisé.');
         break;

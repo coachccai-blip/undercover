@@ -4,7 +4,7 @@
    (et même dès la 1re, une fois l'installation du worker terminée).
    ========================================================================== */
 
-var CACHE_NAME = 'undercover-v1.0.1';
+var CACHE_NAME = 'undercover-v1.0.2';
 
 var ASSETS = [
   './',
