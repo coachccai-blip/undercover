@@ -29,6 +29,9 @@
 
       <div class="stack">
         <button class="btn btn-primary btn-xl" data-action="new-game">Nouvelle partie</button>
+        <button class="btn btn-secondary" id="install-btn" data-action="install" hidden>
+          Installer le jeu sur l'écran principal
+        </button>
         <button class="btn btn-ghost" data-action="open-rules">Comment on joue&nbsp;?</button>
       </div>
     </div>
@@ -86,6 +89,24 @@
         <div class="select-wrap">
           <select id="theme-select" class="select" aria-label="Thématique"></select>
           <svg class="select-caret" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+
+      <h3 class="section-title">Proximité des mots</h3>
+      <div class="card card-tight">
+        <div class="prox-head">
+          <span class="prox-value" id="prox-label">Varié</span>
+          <span class="prox-hint" id="prox-hint">Toutes les paires, au hasard.</span>
+        </div>
+        <input type="range" class="prox-range" id="prox-range" min="1" max="5" step="1" value="3"
+               aria-label="Proximité des mots" list="prox-ticks">
+        <datalist id="prox-ticks">
+          <option value="1"></option><option value="2"></option><option value="3"></option>
+          <option value="4"></option><option value="5"></option>
+        </datalist>
+        <div class="prox-scale">
+          <span>Très proche</span>
+          <span>Très éloigné</span>
         </div>
       </div>
 
