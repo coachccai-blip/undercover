@@ -4,7 +4,7 @@
    (et même dès la 1re, une fois l'installation du worker terminée).
    ========================================================================== */
 
-var CACHE_NAME = 'undercover-v1.0.2';
+var CACHE_NAME = 'undercover-v1.1.0';
 
 var ASSETS = [
   './',
@@ -13,7 +13,8 @@ var ASSETS = [
   'app.js',
   'words.js',
   'manifest.json',
-  'icons/logo.svg',
+  'icons/logo-undercover.png',
+  'icons/logo-civil.png',
   'icons/icon-192.png',
   'icons/icon-512.png',
   'icons/icon-maskable-512.png'

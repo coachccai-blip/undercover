@@ -40,6 +40,9 @@
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
+/* L'attribut hidden doit toujours l'emporter sur les display: flex ci-dessous. */
+[hidden] { display: none !important; }
+
 html, body {
   margin: 0;
   padding: 0;
@@ -136,6 +139,8 @@ body::before {
   height: auto;
   aspect-ratio: 1;
   display: block;
+  /* le logo est un médaillon circulaire : on découpe le fond carré du PNG */
+  border-radius: 50%;
   filter: drop-shadow(0 18px 40px rgba(5, 11, 20, .95));
 }
 
@@ -337,6 +342,7 @@ body::before {
 .pass-logo {
   width: 74px; height: 74px;
   align-self: center;
+  border-radius: 50%;
   margin-bottom: 18px;
   opacity: .92;
   filter: drop-shadow(0 10px 22px rgba(6, 13, 22, .9));
@@ -377,7 +383,7 @@ body::before {
   position: relative;
   border-radius: 26px;
   padding: 34px 22px;
-  min-height: 250px;
+  min-height: 240px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -423,12 +429,23 @@ body::before {
   overflow-wrap: anywhere;
 }
 
+.role-mark {
+  align-self: center;
+  width: 116px; height: 116px;
+  margin-top: 12px;
+  border-radius: 50%;
+  box-shadow: 0 12px 28px -12px rgba(0, 0, 0, .95);
+  animation: pop .4s cubic-bezier(.3, 1.4, .5, 1) both;
+}
+.role-mark.is-civil { box-shadow: 0 0 0 2px rgba(214, 168, 92, .55), 0 12px 28px -12px rgba(0, 0, 0, .95); }
+.role-mark.is-under { box-shadow: 0 0 0 2px rgba(139, 149, 162, .55), 0 12px 28px -12px rgba(0, 0, 0, .95); }
+
 .role-badge {
   align-self: center;
-  margin-top: 14px;
-  padding: 9px 20px;
+  margin-top: 10px;
+  padding: 7px 18px;
   border-radius: 999px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 2px;
   color: #06060c;
@@ -467,8 +484,6 @@ body::before {
 .end-sub { margin: 6px 0 30px; color: var(--text-dim); }
 
 /* ---------- Feuille modale ---------- */
-.sheet-backdrop[hidden] { display: none; }
-
 .sheet-backdrop {
   position: fixed;
   inset: 0;
@@ -506,8 +521,6 @@ body::before {
 .sheet-content strong { color: var(--text); }
 
 /* ---------- Toast ---------- */
-.toast[hidden] { display: none; }
-
 .toast {
   position: fixed;
   pointer-events: none;

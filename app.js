@@ -421,6 +421,7 @@
   var wordFrEl = document.getElementById('word-fr');
   var wordEnEl = document.getElementById('word-en');
   var roleBadgeEl = document.getElementById('role-badge');
+  var roleMarkEl = document.getElementById('role-mark');
   var alliesEl = document.getElementById('allies');
   var alliesNamesEl = document.getElementById('allies-names');
   var wordcardEl = document.getElementById('wordcard');
@@ -438,10 +439,14 @@
     // « CIVIL » seulement si l'option « savent qu'ils le sont » est cochée.
     var showBadge = isUndercover ? game.knowRole : game.showCivilRole;
     roleBadgeEl.hidden = !showBadge;
+    roleMarkEl.hidden = !showBadge;
     if (showBadge) {
       roleBadgeEl.textContent = isUndercover ? 'UNDERCOVER' : 'CIVIL';
       roleBadgeEl.classList.toggle('is-under', isUndercover);
       roleBadgeEl.classList.toggle('is-civil', !isUndercover);
+      roleMarkEl.src = isUndercover ? 'icons/logo-undercover.png' : 'icons/logo-civil.png';
+      roleMarkEl.classList.toggle('is-under', isUndercover);
+      roleMarkEl.classList.toggle('is-civil', !isUndercover);
     }
 
     var allies = game.undercovers
@@ -467,6 +472,7 @@
     wordEnEl.textContent = '';
     alliesNamesEl.textContent = '';
     roleBadgeEl.hidden = true;
+    roleMarkEl.hidden = true;
     alliesEl.hidden = true;
 
     game.cursor++;
