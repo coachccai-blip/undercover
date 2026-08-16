@@ -11,7 +11,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Undercover">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icons/logo.svg" type="image/svg+xml">
 <link rel="icon" href="icons/icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="stylesheet" href="styles.css">
@@ -24,8 +23,7 @@
   <section class="screen is-active" id="screen-home">
     <div class="screen-body center">
       <h1 class="logo">
-        <img class="logo-mark" src="icons/logo.svg" alt="Undercover" width="512" height="512"
-             onerror="this.onerror=null;this.src='icons/icon-512.png'">
+        <img class="logo-mark" src="icons/logo-undercover.png" alt="Undercover" width="512" height="512">
         <span class="logo-sub">Un seul téléphone. Deux mots. Un imposteur.</span>
       </h1>
 
@@ -123,7 +121,7 @@
   <!-- ============ PASSAGE DU TÉLÉPHONE ============ -->
   <section class="screen" id="screen-pass">
     <div class="screen-body center">
-      <img class="pass-logo" src="icons/logo.svg" alt="" aria-hidden="true" width="512" height="512">
+      <img class="pass-logo" src="icons/logo-undercover.png" alt="" aria-hidden="true" width="512" height="512">
       <div class="progress-pill" id="pass-progress">Joueur 1 / 6</div>
       <p class="pass-lead">Passez le téléphone à</p>
       <h2 class="pass-name" id="pass-name">Joueur 1</h2>
@@ -142,6 +140,7 @@
           <div class="wordcard-face wordcard-front">
             <div class="word-fr" id="word-fr">Chien</div>
             <div class="word-en" id="word-en">Dog</div>
+            <img class="role-mark" id="role-mark" src="icons/logo-civil.png" alt="" width="512" height="512" hidden>
             <div class="role-badge" id="role-badge" hidden>CIVIL</div>
             <div class="allies" id="allies" hidden>
               <span class="allies-title">Tes complices</span>

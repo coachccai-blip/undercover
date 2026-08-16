@@ -45,7 +45,7 @@ app.js          logique : configuration, tirage, rôles, persistance
 words.js        banque des 2 000 paires bilingues
 manifest.json   PWA (nom, icônes, standalone, portrait)
 sw.js           service worker (cache complet hors-ligne)
-icons/          logo vectoriel + icônes PNG 192/512 + maskable
+icons/          logos PNG (undercover, civil) + icônes PWA 192/512/maskable
 ```
 
 Aucun framework, aucune étape de build : les fichiers sont servis tels quels.
@@ -65,13 +65,14 @@ Après modification d'un fichier mis en cache, incrémenter `CACHE_NAME` dans `s
 
 Le site est publié par GitHub Pages depuis la branche `main` (racine du dépôt). Tout push sur `main` met l'application à jour en ligne au bout d'une minute environ.
 
-## Logo
+## Logos
 
-Le logo (`icons/logo.svg`) est une version vectorielle du raton laveur encapuchonné, qui sert aussi de base aux icônes PWA. Pour utiliser le fichier original à la place :
+Les visuels du jeu sont les logos officiels fournis :
 
-1. déposer l'image dans `icons/logo.png` ;
-2. remplacer `icons/logo.svg` par `icons/logo.png` dans `index.html` (deux occurrences), `manifest.json` et `sw.js` ;
-3. régénérer si besoin `icon-192.png`, `icon-512.png` et `icon-maskable-512.png` aux mêmes dimensions.
+- `icons/logo-undercover.png` — raton laveur encapuchonné : écran d'accueil, écran de passage, badge UNDERCOVER, et base des icônes PWA (`icon-192`, `icon-512`, `icon-maskable-512`).
+- `icons/logo-civil.png` — panda roux : badge CIVIL sur l'écran de révélation.
+
+Les fichiers sont rééchantillonnés en 512 × 512 à partir des originaux 1254 × 1254 pour rester légers en cache hors-ligne. Pour les remplacer, déposer de nouveaux PNG carrés aux mêmes noms puis incrémenter `CACHE_NAME` dans `sw.js`.
 
 ## Hors périmètre (V1)
 
