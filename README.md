@@ -1,4 +1,4 @@
-# Undercover — distributeur de mots
+# Undercover
 
 Application web (PWA) qui **distribue secrètement les mots** d'une partie d'Undercover autour d'un seul téléphone qui passe de main en main. Les débats, les votes et les éliminations se jouent à l'oral : l'app ne fait que la distribution.
 
