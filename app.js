@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var VERSION = '1.0.0';
+  var VERSION = '1.1.0';
   var STORAGE_KEY = 'undercover.played.v1';
 
   var MIN_PLAYERS = 3;
@@ -29,6 +29,7 @@
       undercoverCount: 1,
       names: buildDefaultNames(6, []),
       themeId: ALL_THEMES,
+      proximity: 3,
       knowRole: false,
       knowAllies: false
     };
@@ -44,6 +45,24 @@
 
   function defaultName(index) {
     return 'Joueur ' + (index + 1);
+  }
+
+  /**
+   * Niveaux du curseur, du plus proche au plus éloigné.
+   * `scores` liste les proximités de paires acceptées ; `mix` construit le
+   * couple à partir de deux paires différentes (mots volontairement sans
+   * rapport), ce que la banque de paires curées ne peut pas fournir seule.
+   */
+  var PROXIMITY_LEVELS = [
+    { value: 1, name: 'Très proche',  hint: 'Deux mots presque interchangeables.', scores: [5] },
+    { value: 2, name: 'Proche',       hint: 'Même famille, mais distinction nette.', scores: [4] },
+    { value: 3, name: 'Varié',        hint: 'Toutes les paires, au hasard.', scores: null },
+    { value: 4, name: 'Éloigné',      hint: 'Les paires les plus lointaines de la thématique.', scores: [2, 3] },
+    { value: 5, name: 'Très éloigné', hint: 'Deux mots tirés de paires différentes, sans rapport.', mix: true }
+  ];
+
+  function proximityLevel(value) {
+    return PROXIMITY_LEVELS[clamp(value, 1, PROXIMITY_LEVELS.length) - 1];
   }
 
   function maxUndercovers(playerCount) {
@@ -119,11 +138,46 @@
     return candidates;
   }
 
+  function pairOf(ref) {
+    return themeById(ref.themeId).pairs[ref.index];
+  }
+
+  function sideOf(pair, second) {
+    return second
+      ? { fr: pair[1], en: pair[3], zh: pair[5] }
+      : { fr: pair[0], en: pair[2], zh: pair[4] };
+  }
+
   /**
-   * Tire une paire non jouée. Réinitialise le périmètre concerné si épuisé.
-   * @returns {{words: {civil: {fr: string, en: string}, under: {fr: string, en: string}}, reset: boolean}}
+   * Restreint les candidats aux paires du niveau de proximité demandé.
+   * Si le niveau est vide (toutes ses paires ont déjà été jouées), on retombe
+   * sur les paires dont la proximité s'en approche le plus.
    */
-  function drawPair(themeId) {
+  function filterByProximity(candidates, scores) {
+    if (!scores) return candidates;
+    var pool = candidates.filter(function (ref) {
+      return scores.indexOf(pairOf(ref)[6]) !== -1;
+    });
+    if (pool.length) return pool;
+
+    var best = null;
+    var distance = function (ref) {
+      return Math.min.apply(null, scores.map(function (s) { return Math.abs(pairOf(ref)[6] - s); }));
+    };
+    candidates.forEach(function (ref) {
+      var d = distance(ref);
+      if (best === null || d < best) best = d;
+    });
+    return candidates.filter(function (ref) { return distance(ref) === best; });
+  }
+
+  /**
+   * Tire les deux mots de la partie. Réinitialise le périmètre concerné si
+   * toutes ses paires ont été jouées.
+   * @returns {{words: {civil: object, under: object}, reset: boolean}}
+   */
+  function drawPair(themeId, proximity) {
+    var level = proximityLevel(proximity);
     var didReset = false;
     var candidates = candidatesFor(themeId);
 
@@ -134,19 +188,29 @@
       candidates = candidatesFor(themeId);
     }
 
-    var pick = candidates[randomInt(candidates.length)];
-    var theme = themeById(pick.themeId);
-    var pair = theme.pairs[pick.index];
-    markPlayed(pick.themeId, pick.index);
+    var civil, under;
 
-    // Le mot des civils est tiré au hasard dans la paire (50/50).
-    var flipped = Math.random() < 0.5;
-    var civil = flipped
-      ? { fr: pair[1], en: pair[3], zh: pair[5] }
-      : { fr: pair[0], en: pair[2], zh: pair[4] };
-    var under = flipped
-      ? { fr: pair[0], en: pair[2], zh: pair[4] }
-      : { fr: pair[1], en: pair[3], zh: pair[5] };
+    if (level.mix && candidates.length > 1) {
+      // Deux mots venus de deux paires différentes : aucun lien entre eux.
+      var first = candidates[randomInt(candidates.length)];
+      var rest = candidates.filter(function (ref) {
+        return ref.themeId !== first.themeId || ref.index !== first.index;
+      });
+      var second = rest[randomInt(rest.length)];
+      civil = sideOf(pairOf(first), Math.random() < 0.5);
+      under = sideOf(pairOf(second), Math.random() < 0.5);
+      markPlayed(first.themeId, first.index);
+      markPlayed(second.themeId, second.index);
+    } else {
+      var pick = filterByProximity(candidates, level.scores);
+      var ref = pick[randomInt(pick.length)];
+      var pair = pairOf(ref);
+      markPlayed(ref.themeId, ref.index);
+      // Le mot des civils est tiré au hasard dans la paire (50/50).
+      var flipped = Math.random() < 0.5;
+      civil = sideOf(pair, flipped);
+      under = sideOf(pair, !flipped);
+    }
 
     return { words: { civil: civil, under: under }, reset: didReset };
   }
@@ -244,6 +308,9 @@
   var undercoverHintEl = document.getElementById('undercover-hint');
   var playersListEl = document.getElementById('players-list');
   var themeSelectEl = document.getElementById('theme-select');
+  var proxRangeEl = document.getElementById('prox-range');
+  var proxLabelEl = document.getElementById('prox-label');
+  var proxHintEl = document.getElementById('prox-hint');
   var optKnowRoleEl = document.getElementById('opt-know-role');
   var optKnowAlliesEl = document.getElementById('opt-know-allies');
 
@@ -274,8 +341,16 @@
 
     renderPlayerRows();
     themeSelectEl.value = config.themeId;
+    proxRangeEl.value = config.proximity;
+    renderProximity();
     optKnowRoleEl.checked = config.knowRole;
     optKnowAlliesEl.checked = config.knowAllies;
+  }
+
+  function renderProximity() {
+    var level = proximityLevel(config.proximity);
+    proxLabelEl.textContent = level.name;
+    proxHintEl.textContent = level.hint;
   }
 
   function renderPlayerRows() {
@@ -366,6 +441,11 @@
     config.themeId = themeSelectEl.value;
   });
 
+  proxRangeEl.addEventListener('input', function () {
+    config.proximity = parseInt(proxRangeEl.value, 10);
+    renderProximity();
+  });
+
   optKnowRoleEl.addEventListener('change', function () {
     config.knowRole = optKnowRoleEl.checked;
   });
@@ -387,7 +467,7 @@
     if (!useExistingConfig) config.names = resolvedNames();
 
     var names = resolvedNames();
-    var draw = drawPair(config.themeId);
+    var draw = drawPair(config.themeId, config.proximity);
 
     var order = shuffle(names.map(function (_, index) { return index; }));
     var undercovers = order.slice(0, config.undercoverCount);
@@ -492,6 +572,69 @@
     }
   }
 
+  /* --------------------------------------------------- Installation PWA */
+
+  var installBtnEl = document.getElementById('install-btn');
+  var installEvent = null;
+
+  function isStandalone() {
+    return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+           navigator.standalone === true;
+  }
+
+  function isIOS() {
+    return /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+           // iPadOS 13+ se présente comme un Mac tactile.
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+
+  function refreshInstallButton() {
+    // Le bouton n'a de sens que hors application déjà installée.
+    installBtnEl.hidden = isStandalone();
+  }
+
+  window.addEventListener('beforeinstallprompt', function (event) {
+    // Empêche la mini-bannière Chrome : on propose l'installation nous-mêmes.
+    event.preventDefault();
+    installEvent = event;
+    refreshInstallButton();
+  });
+
+  window.addEventListener('appinstalled', function () {
+    installEvent = null;
+    installBtnEl.hidden = true;
+    toast('Undercover est installé sur ton écran d\'accueil.');
+  });
+
+  var IOS_INSTALL_HTML =
+    '<p>Sur iPhone et iPad, l\'installation passe par Safari :</p>' +
+    '<ol>' +
+      '<li>Touche le bouton <strong>Partager</strong> (le carré avec une flèche vers le haut), en bas de l\'écran.</li>' +
+      '<li>Fais défiler puis choisis <strong>« Sur l\'écran d\'accueil »</strong>.</li>' +
+      '<li>Valide avec <strong>Ajouter</strong>.</li>' +
+    '</ol>' +
+    '<p>L\'icône du raton laveur apparaît alors avec tes autres applications, et le jeu fonctionne sans connexion.</p>';
+
+  var GENERIC_INSTALL_HTML =
+    '<p>Pour garder le jeu sous la main :</p>' +
+    '<ol>' +
+      '<li>Ouvre le menu de ton navigateur (les trois points).</li>' +
+      '<li>Choisis <strong>« Installer l\'application »</strong> ou <strong>« Ajouter à l\'écran d\'accueil »</strong>.</li>' +
+    '</ol>' +
+    '<p>Une fois installé, le jeu fonctionne sans connexion.</p>';
+
+  function promptInstall() {
+    if (installEvent) {
+      installEvent.prompt();
+      installEvent.userChoice.then(function (choice) {
+        if (choice && choice.outcome === 'accepted') installBtnEl.hidden = true;
+        installEvent = null;
+      });
+      return;
+    }
+    openSheet('Installer le jeu', isIOS() ? IOS_INSTALL_HTML : GENERIC_INSTALL_HTML);
+  }
+
   /* ------------------------------------------------------------- Modales */
 
   var sheetEl = document.getElementById('sheet');
@@ -585,6 +728,10 @@
         showScreen('home');
         break;
 
+      case 'install':
+        promptInstall();
+        break;
+
       case 'open-rules':
         openSheet('Comment on joue', RULES_HTML);
         break;
@@ -608,6 +755,7 @@
   /* --------------------------------------------------------- Démarrage */
 
   document.getElementById('version-label').textContent = VERSION;
+  refreshInstallButton();
   fillThemeSelect();
   showScreen('home');
 

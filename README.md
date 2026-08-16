@@ -14,6 +14,8 @@ Sur mobile : ouvrir le lien, puis « Ajouter à l'écran d'accueil ». L'applica
 - **2 000 paires de mots trilingues** (français, anglais, 中文), réparties en 10 thématiques de 200 paires. Chaque carte affiche le mot en français en grand, puis « English / 中文 » en sous-titre.
 - **Aucune répétition** : une paire jouée ne ressort plus tant que son périmètre n'est pas épuisé. Le statut est conservé dans le `localStorage` du téléphone, y compris entre deux sessions. Quand une thématique est terminée, elle se réinitialise seule (message discret).
 - Attribution civil/undercover du mot **tirée au sort à chaque partie** (50/50), rôles **redistribués** à chaque lancement, y compris sur « Rejouer ».
+- **Curseur de proximité des mots** (5 crans, de « Très proche » à « Très éloigné ») : chaque paire porte un indice de proximité, et les deux crans extrêmes changent la difficulté en profondeur — au plus proche les mots sont presque interchangeables, au plus éloigné les deux mots sont tirés de **paires différentes** et n'ont aucun rapport.
+- Bouton **« Installer le jeu sur l'écran principal »** : déclenche l'installation native sur Android/Chrome, et affiche la marche à suivre sur iOS (Partager → Sur l'écran d'accueil). Il disparaît une fois l'app installée.
 - Deux options facultatives : *les undercovers savent qu'ils le sont* et *les undercovers se connaissent* (la seconde active implicitement l'affichage du rôle pour les undercovers).
 - Sécurité anti-triche : bouton retour du navigateur neutralisé pendant la distribution, mot jamais affiché sans action explicite, effacement du mot avant tout changement d'écran.
 - PWA complète : `manifest.json`, service worker, mode portrait, thème sombre.
@@ -35,6 +37,18 @@ Sur mobile : ouvrir le lien, puis « Ajouter à l'écran d'accueil ». L'applica
 | | **Total** | **2 000** |
 
 Le mode « Tout » tire parmi les 2 000 paires, en partageant le même historique que les modes thématiques.
+
+### Proximité
+
+| Cran | Ce qui est tiré |
+|---|---|
+| Très proche | paires notées 5 (ex. *Spaghetti / Tagliatelles*) |
+| Proche | paires notées 4 (ex. *Chien / Loup*) |
+| Varié | n'importe quelle paire — comportement par défaut |
+| Éloigné | paires notées 2-3, les plus lointaines de la banque |
+| Très éloigné | un mot pris dans une paire, l'autre dans une paire différente (ex. *Bouillir / Sushi*) |
+
+La banque étant composée de paires conçues pour être jouables, elle contient surtout des couples proches ; le cran « Très éloigné » compose donc le couple à la volée plutôt que de promettre des paires lointaines qui n'existent pas. Si un cran est épuisé, le tirage retombe sur les paires dont la proximité s'en approche le plus.
 
 ## Structure du projet
 
