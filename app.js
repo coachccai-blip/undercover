@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var VERSION = '1.2.0';
+  var VERSION = '1.3.0';
   var STORAGE_KEY = 'undercover.played.v1';
 
   var MIN_PLAYERS = 3;
@@ -171,8 +171,8 @@
 
   function sideOf(pair, second, ref) {
     return second
-      ? { fr: pair[1], en: pair[3], zh: pair[5], ref: ref }
-      : { fr: pair[0], en: pair[2], zh: pair[4], ref: ref };
+      ? { fr: pair[1], en: pair[3], zh: pair[5], clues: pair[8], ref: ref }
+      : { fr: pair[0], en: pair[2], zh: pair[4], clues: pair[7], ref: ref };
   }
 
   /**
@@ -451,6 +451,12 @@
     renderConfig();
   }
 
+  function normalizeWord(word) {
+    return String(word).toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]/g, '');
+  }
+
   function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
   }
@@ -722,32 +728,62 @@
   }
 
   /**
-   * Indice donné par un robot. Les paires voisines dans la banque relèvent de
-   * la même famille de mots : on y pioche un mot du même univers que celui du
-   * robot, sans jamais reprendre l'un des deux mots de la partie.
+   * Indice donné par un robot. Chaque mot de la banque porte deux indices
+   * écrits pour lui : c'est ce que le robot dit en priorité. Au-delà (beaucoup
+   * de robots ou de tours), on se rabat sur les indices des paires
+   * immédiatement voisines, qui relèvent de la même famille de mots.
    */
-  function pickClue(ref) {
-    var forbidden = [game.words.civil.fr, game.words.under.fr];
-    var theme = ref ? themeById(ref.themeId) : WORD_BANK[randomInt(WORD_BANK.length)];
+  function fallbackClues(ref) {
+    if (!ref) return [];
+    var theme = themeById(ref.themeId);
     var count = theme.pairs.length;
-    var origin = ref ? ref.index : randomInt(count);
     var pool = [];
+    [-1, 1].forEach(function (offset) {
+      var pair = theme.pairs[(ref.index + offset + count) % count];
+      pool = pool.concat(pair[7], pair[8]);
+    });
+    return pool;
+  }
 
-    for (var d = 1; d <= 3; d++) {
-      [(origin - d + count) % count, (origin + d) % count].forEach(function (index) {
-        var pair = theme.pairs[index];
-        pool.push(pair[0], pair[1]);
+  function cluesSaidThisRound() {
+    var said = [];
+    Object.keys(game.clues).forEach(function (key) {
+      if (key.split(':')[1] === String(game.round)) said.push(normalizeWord(game.clues[key]));
+    });
+    return said;
+  }
+
+  /**
+   * Choix de l'indice, du meilleur au moins bon :
+   *   1. un indice écrit pour ce mot, encore jamais dit ;
+   *   2. un indice de ce mot déjà dit à un tour précédent ;
+   *   3. un indice de ce mot déjà dit ce tour-ci — redire « roi » reste plus
+   *      juste que lâcher un mot hors sujet ;
+   *   4. un indice d'une paire immédiatement voisine, seulement si le mot
+   *      n'a aucun indice utilisable.
+   */
+  function pickClue(words) {
+    var interdits = [game.words.civil.fr, game.words.under.fr].map(normalizeWord);
+    var ceTour = cluesSaidThisRound();
+    var propres = (words.clues || []).filter(function (clue) {
+      return interdits.indexOf(normalizeWord(clue)) === -1;
+    });
+
+    var libres = function (list, exclus) {
+      return list.filter(function (clue) {
+        return interdits.indexOf(normalizeWord(clue)) === -1 &&
+               exclus.indexOf(normalizeWord(clue)) === -1;
       });
-    }
+    };
 
-    var fresh = pool.filter(function (word) {
-      return forbidden.indexOf(word) === -1 && game.usedClues.indexOf(word) === -1;
-    });
-    var usable = fresh.length ? fresh : pool.filter(function (word) {
-      return forbidden.indexOf(word) === -1;
-    });
-    var clue = usable[randomInt(usable.length)];
-    game.usedClues.push(clue);
+    var pool = libres(propres, game.usedClues);
+    if (!pool.length) pool = libres(propres, ceTour);
+    if (!pool.length) pool = propres;
+    if (!pool.length) pool = libres(fallbackClues(words.ref), game.usedClues.concat(ceTour));
+    if (!pool.length) pool = ['…'];
+
+    var clue = pool[randomInt(pool.length)];
+    if (game.usedClues.indexOf(normalizeWord(clue)) === -1) game.usedClues.push(normalizeWord(clue));
     return clue;
   }
 
@@ -756,7 +792,7 @@
     if (!game.clues[key]) {
       var isUndercover = game.undercovers.indexOf(index) !== -1;
       var words = isUndercover ? game.words.under : game.words.civil;
-      game.clues[key] = pickClue(words.ref);
+      game.clues[key] = pickClue(words);
     }
     return game.clues[key];
   }

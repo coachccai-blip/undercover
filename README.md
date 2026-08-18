@@ -53,9 +53,16 @@ La banque étant composée de paires conçues pour être jouables, elle contient
 
 ### Comment parlent les robots
 
-Les paires ont été écrites par blocs thématiques : dans chaque thématique, les paires voisines dans le tableau relèvent de la même famille de mots (les fruits ensemble, les outils ensemble…). L'indice d'un robot est donc un mot pioché dans les **trois paires voisines** de celle qui a fourni son mot, jamais l'un des deux mots de la partie et jamais deux fois le même dans une partie.
+Chaque mot de la banque porte **deux indices écrits pour lui** — 8 000 indices au total, vérifiés pour qu'aucun ne soit l'un des deux mots de la paire. Un robot dit l'un de ces indices : *Course d'orientation* → « carte », « balises » ; *Échecs* → « roi », « échiquier » ; *Dames* → « damier », « pions ».
 
-Conséquence à connaître : l'indice d'un robot colle au sujet, pas à son mot précis. Un robot undercover n'est donc pas démasquable par ce qu'il dit — c'est le bouton « Éliminer » qui tranche. Les robots ajoutent des joueurs autour de la table et du suspense au vote, ils ne remplacent pas un humain malin.
+Ordre de choix, du meilleur au moins bon :
+
+1. un indice écrit pour son mot, encore jamais dit ;
+2. un indice de son mot déjà dit à un tour précédent ;
+3. un indice de son mot déjà dit ce tour-ci — redire « roi » reste plus juste que lâcher un mot hors sujet ;
+4. un indice d'une paire immédiatement voisine, seulement si son mot n'a aucun indice utilisable.
+
+Conséquence à connaître : avec plusieurs robots sur le même mot, ils **répètent** les deux indices disponibles au lieu d'en inventer d'autres. Les indices d'un robot undercover diffèrent en revanche de ceux des civils, ce qui rend les robots démasquables à l'oreille — et le bouton « Éliminer » tranche.
 
 ## Structure du projet
 
