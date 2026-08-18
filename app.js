@@ -769,6 +769,7 @@
       var said = game.clues[index + ':' + game.round];
       var out = game.eliminated[index];
       var wasUndercover = game.undercovers.indexOf(index) !== -1;
+      var botWords = wasUndercover ? game.words.under : game.words.civil;
 
       html += '<div class="bot-row' + (out ? ' is-out' : '') + '">' +
                 '<span class="bot-avatar">' + BOT_ICON + '</span>' +
@@ -776,7 +777,14 @@
                   '<span class="bot-name">' + escapeHtml(participant.name) + '</span>' +
                   (out
                     ? '<span class="bot-verdict ' + (wasUndercover ? 'is-under' : 'is-civil') + '">' +
-                      (wasUndercover ? 'C\'était un UNDERCOVER' : 'C\'était un CIVIL') + '</span>'
+                        (wasUndercover ? 'C\'était un UNDERCOVER' : 'C\'était un CIVIL') +
+                      '</span>' +
+                      '<span class="bot-word">' +
+                        '<span class="bot-word-label">son mot</span>' +
+                        '<span class="bot-word-fr">' + escapeHtml(botWords.fr) + '</span>' +
+                        '<span class="bot-word-sub"><em>' + escapeHtml(botWords.en) + '</em> / ' +
+                          escapeHtml(botWords.zh) + '</span>' +
+                      '</span>'
                     : said
                       ? '<span class="bot-clue">' + escapeHtml(said) + '</span>'
                       : '<span class="bot-waiting">n\'a pas encore parlé</span>') +
