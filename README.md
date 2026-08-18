@@ -53,7 +53,9 @@ La banque étant composée de paires conçues pour être jouables, elle contient
 
 ### Comment parlent les robots
 
-Chaque mot de la banque porte **deux indices écrits pour lui** — 8 000 indices au total, vérifiés pour qu'aucun ne soit l'un des deux mots de la paire. Un robot dit l'un de ces indices : *Course d'orientation* → « carte », « balises » ; *Échecs* → « roi », « échiquier » ; *Dames* → « damier », « pions ».
+Chaque mot de la banque porte **deux indices écrits pour lui** — 8 000 indices au total. Ils sont choisis pour être **directs** : ce qui vient immédiatement à l'esprit quand on entend le mot, jamais une notion de spécialiste. Un robot dit l'un de ces indices : *Course d'orientation* → « carte », « balises » ; *Échecs* → « roi », « échiquier » ; *Dames* → « pions », « damier » ; *Blockbuster* → « gros budget », « grand public » ; *Effroi* → « glacé », « horreur ».
+
+Un contrôle automatique refuse tout indice qui serait l'un des deux mots de la paire, qui le contiendrait, ou qui en partagerait la racine — pas de « caféine » pour *Café*, pas de « capuche » pour *Sweat à capuche*.
 
 Ordre de choix, du meilleur au moins bon :
 
