@@ -10,11 +10,12 @@ Sur mobile : ouvrir le lien, puis « Ajouter à l'écran d'accueil ». L'applica
 
 ## Fonctionnalités
 
-- 3 à 20 joueurs, noms éditables, 1 à *n* undercovers (toujours strictement moins de la moitié des joueurs, réajusté automatiquement).
+- 3 à 20 joueurs (2 minimum si des robots complètent la table), noms éditables, 1 à *n* undercovers (toujours strictement moins de la moitié des joueurs, réajusté automatiquement).
 - **2 000 paires de mots trilingues** (français, anglais, 中文), réparties en 10 thématiques de 200 paires. Chaque carte affiche le mot en français en grand, puis « English / 中文 » en sous-titre.
 - **Aucune répétition** : une paire jouée ne ressort plus tant que son périmètre n'est pas épuisé. Le statut est conservé dans le `localStorage` du téléphone, y compris entre deux sessions. Quand une thématique est terminée, elle se réinitialise seule (message discret).
 - Attribution civil/undercover du mot **tirée au sort à chaque partie** (50/50), rôles **redistribués** à chaque lancement, y compris sur « Rejouer ».
 - **Curseur de proximité des mots** (5 crans, de « Très proche » à « Très éloigné ») : chaque paire porte un indice de proximité, et les deux crans extrêmes changent la difficulté en profondeur — au plus proche les mots sont presque interchangeables, au plus éloigné les deux mots sont tirés de **paires différentes** et n'ont aucun rapport.
+- **Robots** : de 0 à 8 joueurs tenus par l'app. Ils reçoivent un rôle et un mot comme les humains, mais le téléphone ne s'arrête pas sur eux pendant la distribution. Depuis l'écran de fin, « Faire parler les robots » ouvre un écran où chaque robot donne un mot à chaque tour, et où l'on peut **éliminer** un robot pour découvrir s'il était civil ou undercover. Avec au moins un robot, deux humains suffisent pour jouer.
 - Bouton **« Installer le jeu sur l'écran principal »** : déclenche l'installation native sur Android/Chrome, et affiche la marche à suivre sur iOS (Partager → Sur l'écran d'accueil). Il disparaît une fois l'app installée.
 - Deux options facultatives : *les undercovers savent qu'ils le sont* et *les undercovers se connaissent* (la seconde active implicitement l'affichage du rôle pour les undercovers).
 - Sécurité anti-triche : bouton retour du navigateur neutralisé pendant la distribution, mot jamais affiché sans action explicite, effacement du mot avant tout changement d'écran.
@@ -49,6 +50,12 @@ Le mode « Tout » tire parmi les 2 000 paires, en partageant le même historiqu
 | Très éloigné | un mot pris dans une paire, l'autre dans une paire différente (ex. *Bouillir / Sushi*) |
 
 La banque étant composée de paires conçues pour être jouables, elle contient surtout des couples proches ; le cran « Très éloigné » compose donc le couple à la volée plutôt que de promettre des paires lointaines qui n'existent pas. Si un cran est épuisé, le tirage retombe sur les paires dont la proximité s'en approche le plus.
+
+### Comment parlent les robots
+
+Les paires ont été écrites par blocs thématiques : dans chaque thématique, les paires voisines dans le tableau relèvent de la même famille de mots (les fruits ensemble, les outils ensemble…). L'indice d'un robot est donc un mot pioché dans les **trois paires voisines** de celle qui a fourni son mot, jamais l'un des deux mots de la partie et jamais deux fois le même dans une partie.
+
+Conséquence à connaître : l'indice d'un robot colle au sujet, pas à son mot précis. Un robot undercover n'est donc pas démasquable par ce qu'il dit — c'est le bouton « Éliminer » qui tranche. Les robots ajoutent des joueurs autour de la table et du suspense au vote, ils ne remplacent pas un humain malin.
 
 ## Structure du projet
 

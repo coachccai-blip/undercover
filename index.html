@@ -78,6 +78,20 @@
             <button class="step-btn" data-step="undercovers" data-delta="1" aria-label="Plus d'undercovers">+</button>
           </div>
         </div>
+
+        <div class="divider"></div>
+
+        <div class="field-row">
+          <div class="field-label">
+            <span class="field-name">Robots</span>
+            <span class="field-hint" id="bots-hint">joueurs tenus par l'app</span>
+          </div>
+          <div class="stepper">
+            <button class="step-btn" data-step="bots" data-delta="-1" aria-label="Moins de robots">–</button>
+            <output class="step-value" id="bots-count">0</output>
+            <button class="step-btn" data-step="bots" data-delta="1" aria-label="Plus de robots">+</button>
+          </div>
+        </div>
       </div>
 
       <h3 class="section-title">Noms des joueurs</h3>
@@ -188,10 +202,35 @@
       <h2 class="end-title">Tout le monde a vu son mot.</h2>
       <p class="end-sub">Bonne partie&nbsp;!</p>
       <div class="stack">
+        <button class="btn btn-secondary" id="bots-turn-btn" data-action="open-bots" hidden>
+          Faire parler les robots
+        </button>
         <button class="btn btn-primary btn-xl" data-action="replay">Rejouer</button>
         <button class="btn btn-secondary" data-action="edit-settings">Changer les paramètres</button>
         <button class="btn btn-ghost" data-action="go-home">Menu principal</button>
       </div>
+    </div>
+  </section>
+
+  <!-- ============ TOUR DES ROBOTS ============ -->
+  <section class="screen" id="screen-bots">
+    <header class="topbar">
+      <button class="icon-btn" data-action="bots-back" aria-label="Retour">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <h2 class="topbar-title">Tour des robots</h2>
+      <span class="topbar-spacer"></span>
+    </header>
+
+    <div class="screen-body scroll">
+      <div class="progress-pill" id="bots-round">Tour 1</div>
+      <p class="section-note bots-lead">Chaque robot donne un mot, comme un joueur. Tape sur un robot quand vient son tour de parler.</p>
+      <div class="bots-list" id="bots-list"></div>
+      <div class="spacer-lg"></div>
+    </div>
+
+    <div class="screen-foot">
+      <button class="btn btn-primary btn-xl" data-action="bots-next-round">Tour suivant</button>
     </div>
   </section>
 

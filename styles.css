@@ -105,6 +105,8 @@ body::before {
 .screen-body.scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; gap: 4px; }
 
 .screen-foot {
+  display: flex;
+  flex-direction: column;
   padding: 12px var(--pad) calc(12px + var(--pad) / 2);
   background: linear-gradient(to top, var(--bg) 55%, transparent);
 }
@@ -279,6 +281,63 @@ body::before {
 }
 .player-input:focus { outline: none; }
 .player-input::placeholder { color: var(--text-faint); }
+
+/* ---------- Robots ---------- */
+.player-row.is-bot { opacity: .78; }
+.player-bot-name { flex: 1; font-size: 17px; color: var(--text-dim); }
+.player-bot-tag {
+  flex: none;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(74, 142, 194, .16);
+  border: 1px solid rgba(74, 142, 194, .35);
+  color: var(--blue);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.bots-lead { text-align: center; margin-bottom: 14px; }
+.bots-list { display: flex; flex-direction: column; gap: 10px; }
+
+.bot-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+.bot-row.is-out { opacity: .72; }
+
+.bot-avatar {
+  width: 38px; height: 38px;
+  flex: none;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--bg-elev-2);
+  color: var(--blue);
+}
+.bot-avatar svg { width: 24px; height: 24px; }
+
+.bot-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: left; }
+.bot-name { font-size: 15px; font-weight: 600; color: var(--text-dim); }
+.bot-clue {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -.3px;
+  overflow-wrap: anywhere;
+}
+.bot-waiting { font-size: 13px; color: var(--text-faint); font-style: italic; }
+
+.bot-verdict { font-size: 14px; font-weight: 700; letter-spacing: .4px; }
+.bot-verdict.is-civil { color: var(--teal); }
+.bot-verdict.is-under { color: var(--amber); }
+
+.bot-actions { display: flex; flex-direction: column; gap: 4px; flex: none; }
+.bot-btn { min-height: 40px; padding: 8px 14px; font-size: 14px; border-radius: 12px; }
+.bot-out { color: var(--text-faint); }
 
 /* ---------- Sélecteur ---------- */
 .select-wrap { position: relative; margin: 12px 0; }

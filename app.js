@@ -5,11 +5,13 @@
 (function () {
   'use strict';
 
-  var VERSION = '1.1.0';
+  var VERSION = '1.2.0';
   var STORAGE_KEY = 'undercover.played.v1';
 
   var MIN_PLAYERS = 3;
   var MAX_PLAYERS = 20;
+  var MIN_HUMANS_WITH_BOTS = 2;
+  var MAX_BOTS = 8;
   var ALL_THEMES = '*';
 
   /* ---------------------------------------------------------------- État */
@@ -26,6 +28,7 @@
   function defaultConfig() {
     return {
       playerCount: 6,
+      botCount: 0,
       undercoverCount: 1,
       names: buildDefaultNames(6, []),
       themeId: ALL_THEMES,
@@ -47,6 +50,30 @@
     return 'Joueur ' + (index + 1);
   }
 
+  function botName(index) {
+    return 'Robot ' + (index + 1);
+  }
+
+  /** Un robot ne tient pas le téléphone : il faut au moins deux humains. */
+  function minHumans() {
+    return config.botCount > 0 ? MIN_HUMANS_WITH_BOTS : MIN_PLAYERS;
+  }
+
+  function totalPlayers() {
+    return config.playerCount + config.botCount;
+  }
+
+  /** Liste ordonnée des participants : humains d'abord, puis robots. */
+  function buildParticipants() {
+    var list = resolvedNames().map(function (name) {
+      return { name: name, bot: false };
+    });
+    for (var i = 0; i < config.botCount; i++) {
+      list.push({ name: botName(i), bot: true });
+    }
+    return list;
+  }
+
   /**
    * Niveaux du curseur, du plus proche au plus éloigné.
    * `scores` liste les proximités de paires acceptées ; `mix` construit le
@@ -65,9 +92,9 @@
     return PROXIMITY_LEVELS[clamp(value, 1, PROXIMITY_LEVELS.length) - 1];
   }
 
-  function maxUndercovers(playerCount) {
-    // Contrainte : strictement inférieur à la moitié des joueurs.
-    return Math.max(1, Math.ceil(playerCount / 2) - 1);
+  function maxUndercovers(total) {
+    // Contrainte : strictement inférieur à la moitié des participants.
+    return Math.max(1, Math.ceil(total / 2) - 1);
   }
 
   /* ------------------------------------------------- Persistance (paires) */
@@ -142,10 +169,10 @@
     return themeById(ref.themeId).pairs[ref.index];
   }
 
-  function sideOf(pair, second) {
+  function sideOf(pair, second, ref) {
     return second
-      ? { fr: pair[1], en: pair[3], zh: pair[5] }
-      : { fr: pair[0], en: pair[2], zh: pair[4] };
+      ? { fr: pair[1], en: pair[3], zh: pair[5], ref: ref }
+      : { fr: pair[0], en: pair[2], zh: pair[4], ref: ref };
   }
 
   /**
@@ -197,8 +224,8 @@
         return ref.themeId !== first.themeId || ref.index !== first.index;
       });
       var second = rest[randomInt(rest.length)];
-      civil = sideOf(pairOf(first), Math.random() < 0.5);
-      under = sideOf(pairOf(second), Math.random() < 0.5);
+      civil = sideOf(pairOf(first), Math.random() < 0.5, first);
+      under = sideOf(pairOf(second), Math.random() < 0.5, second);
       markPlayed(first.themeId, first.index);
       markPlayed(second.themeId, second.index);
     } else {
@@ -208,8 +235,8 @@
       markPlayed(ref.themeId, ref.index);
       // Le mot des civils est tiré au hasard dans la paire (50/50).
       var flipped = Math.random() < 0.5;
-      civil = sideOf(pair, flipped);
-      under = sideOf(pair, !flipped);
+      civil = sideOf(pair, flipped, ref);
+      under = sideOf(pair, !flipped, ref);
     }
 
     return { words: { civil: civil, under: under }, reset: didReset };
@@ -247,7 +274,8 @@
     config: document.getElementById('screen-config'),
     pass: document.getElementById('screen-pass'),
     reveal: document.getElementById('screen-reveal'),
-    end: document.getElementById('screen-end')
+    end: document.getElementById('screen-end'),
+    bots: document.getElementById('screen-bots')
   };
 
   function showScreen(name) {
@@ -304,6 +332,8 @@
   /* ---------------------------------------------- Écran de configuration */
 
   var playersCountEl = document.getElementById('players-count');
+  var botsCountEl = document.getElementById('bots-count');
+  var botsHintEl = document.getElementById('bots-hint');
   var undercoverCountEl = document.getElementById('undercover-count');
   var undercoverHintEl = document.getElementById('undercover-hint');
   var playersListEl = document.getElementById('players-list');
@@ -324,18 +354,26 @@
 
   function renderConfig() {
     playersCountEl.textContent = config.playerCount;
+    botsCountEl.textContent = config.botCount;
     undercoverCountEl.textContent = config.undercoverCount;
-    undercoverHintEl.textContent = 'max. ' + maxUndercovers(config.playerCount);
+    undercoverHintEl.textContent = 'max. ' + maxUndercovers(totalPlayers());
+    botsHintEl.textContent = config.botCount > 0
+      ? totalPlayers() + ' joueurs en tout'
+      : 'joueurs tenus par l\'app';
 
     document.querySelectorAll('[data-step]').forEach(function (btn) {
       var kind = btn.getAttribute('data-step');
       var delta = parseInt(btn.getAttribute('data-delta'), 10);
       if (kind === 'players') {
-        btn.disabled = delta < 0 ? config.playerCount <= MIN_PLAYERS : config.playerCount >= MAX_PLAYERS;
+        btn.disabled = delta < 0 ? config.playerCount <= minHumans() : config.playerCount >= MAX_PLAYERS;
+      } else if (kind === 'bots') {
+        btn.disabled = delta < 0
+          ? config.botCount <= 0
+          : config.botCount >= MAX_BOTS || totalPlayers() >= MAX_PLAYERS;
       } else {
         btn.disabled = delta < 0
           ? config.undercoverCount <= 1
-          : config.undercoverCount >= maxUndercovers(config.playerCount);
+          : config.undercoverCount >= maxUndercovers(totalPlayers());
       }
     });
 
@@ -356,7 +394,7 @@
   function renderPlayerRows() {
     // Ne reconstruit la liste que si le nombre de lignes a changé,
     // pour ne pas voler le focus pendant la saisie d'un nom.
-    if (playersListEl.childElementCount !== config.playerCount) {
+    if (playersListEl.childElementCount !== config.playerCount + config.botCount) {
       var html = '';
       for (var i = 0; i < config.playerCount; i++) {
         html += '<div class="player-row">' +
@@ -364,6 +402,13 @@
                   '<input class="player-input" type="text" inputmode="text" autocomplete="off" ' +
                     'autocapitalize="words" spellcheck="false" maxlength="18" data-player="' + i + '" ' +
                     'aria-label="Nom du joueur ' + (i + 1) + '" placeholder="' + defaultName(i) + '">' +
+                '</div>';
+      }
+      for (var b = 0; b < config.botCount; b++) {
+        html += '<div class="player-row is-bot">' +
+                  '<span class="player-num">' + (config.playerCount + b + 1) + '</span>' +
+                  '<span class="player-bot-name">' + botName(b) + '</span>' +
+                  '<span class="player-bot-tag">ROBOT</span>' +
                 '</div>';
       }
       playersListEl.innerHTML = html;
@@ -374,8 +419,18 @@
     });
   }
 
+  function setBotCount(count) {
+    count = clamp(count, 0, Math.min(MAX_BOTS, MAX_PLAYERS - config.playerCount));
+    config.botCount = count;
+    // Sans robot, il faut de nouveau trois humains autour de la table.
+    config.playerCount = Math.max(config.playerCount, minHumans());
+    config.names = buildDefaultNames(config.playerCount, config.names);
+    config.undercoverCount = clamp(config.undercoverCount, 1, maxUndercovers(totalPlayers()));
+    renderConfig();
+  }
+
   function setPlayerCount(count) {
-    count = clamp(count, MIN_PLAYERS, MAX_PLAYERS);
+    count = clamp(count, minHumans(), MAX_PLAYERS - config.botCount);
     if (count === config.playerCount) return;
 
     var names = config.names.slice();
@@ -387,12 +442,12 @@
     config.names = names;
     config.playerCount = count;
     // Réajustement automatique du nombre d'undercovers.
-    config.undercoverCount = clamp(config.undercoverCount, 1, maxUndercovers(count));
+    config.undercoverCount = clamp(config.undercoverCount, 1, maxUndercovers(totalPlayers()));
     renderConfig();
   }
 
   function setUndercoverCount(count) {
-    config.undercoverCount = clamp(count, 1, maxUndercovers(config.playerCount));
+    config.undercoverCount = clamp(count, 1, maxUndercovers(totalPlayers()));
     renderConfig();
   }
 
@@ -431,7 +486,9 @@
   document.querySelectorAll('[data-step]').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var delta = parseInt(btn.getAttribute('data-delta'), 10);
-      if (btn.getAttribute('data-step') === 'players') setPlayerCount(config.playerCount + delta);
+      var kind = btn.getAttribute('data-step');
+      if (kind === 'players') setPlayerCount(config.playerCount + delta);
+      else if (kind === 'bots') setBotCount(config.botCount + delta);
       else setUndercoverCount(config.undercoverCount + delta);
       buzz(8);
     });
@@ -466,20 +523,29 @@
   function startDistribution(useExistingConfig) {
     if (!useExistingConfig) config.names = resolvedNames();
 
-    var names = resolvedNames();
+    var participants = buildParticipants();
     var draw = drawPair(config.themeId, config.proximity);
 
-    var order = shuffle(names.map(function (_, index) { return index; }));
+    // Les robots participent au tirage des rôles comme les humains.
+    var order = shuffle(participants.map(function (_, index) { return index; }));
     var undercovers = order.slice(0, config.undercoverCount);
 
     game = {
-      names: names,
+      participants: participants,
+      humans: participants.reduce(function (acc, p, index) {
+        if (!p.bot) acc.push(index);
+        return acc;
+      }, []),
       words: draw.words,
       undercovers: undercovers,
       knowRole: config.knowRole || config.knowAllies,
       knowAllies: config.knowAllies,
       showCivilRole: config.knowRole,
-      cursor: 0
+      cursor: 0,
+      round: 1,
+      clues: {},
+      usedClues: [],
+      eliminated: {}
     };
 
     armBackGuard();
@@ -496,8 +562,8 @@
   var passNameEl = document.getElementById('pass-name');
 
   function showPass() {
-    passProgressEl.textContent = 'Joueur ' + (game.cursor + 1) + ' / ' + game.names.length;
-    passNameEl.textContent = game.names[game.cursor];
+    passProgressEl.textContent = 'Joueur ' + (game.cursor + 1) + ' / ' + game.humans.length;
+    passNameEl.textContent = game.participants[game.humans[game.cursor]].name;
     showScreen('pass');
   }
 
@@ -512,11 +578,11 @@
   var wordcardEl = document.getElementById('wordcard');
 
   function showReveal() {
-    var index = game.cursor;
+    var index = game.humans[game.cursor];
     var isUndercover = game.undercovers.indexOf(index) !== -1;
     var words = isUndercover ? game.words.under : game.words.civil;
 
-    revealNameEl.textContent = game.names[index];
+    revealNameEl.textContent = game.participants[index].name;
     wordFrEl.textContent = words.fr;
     wordEnEl.textContent = words.en;
     wordZhEl.textContent = words.zh;
@@ -535,9 +601,10 @@
       roleMarkEl.classList.toggle('is-civil', !isUndercover);
     }
 
+    // Les robots undercovers comptent comme complices.
     var allies = game.undercovers
       .filter(function (i) { return i !== index; })
-      .map(function (i) { return game.names[i]; });
+      .map(function (i) { return game.participants[i].name; });
     var showAllies = game.knowAllies && isUndercover && allies.length > 0;
     alliesEl.hidden = !showAllies;
     if (showAllies) alliesNamesEl.textContent = allies.join(', ');
@@ -563,9 +630,9 @@
     alliesEl.hidden = true;
 
     game.cursor++;
-    if (game.cursor >= game.names.length) {
+    if (game.cursor >= game.humans.length) {
       disarmBackGuard();
-      showScreen('end');
+      showEnd();
       buzz([12, 60, 12]);
     } else {
       showPass();
@@ -635,6 +702,103 @@
     openSheet('Installer le jeu', isIOS() ? IOS_INSTALL_HTML : GENERIC_INSTALL_HTML);
   }
 
+  /* --------------------------------------------------- Tour des robots */
+
+  var botsTurnBtnEl = document.getElementById('bots-turn-btn');
+  var botsRoundEl = document.getElementById('bots-round');
+  var botsListEl = document.getElementById('bots-list');
+
+  var BOT_ICON =
+    '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+    '<rect x="4" y="8" width="16" height="12" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/>' +
+    '<circle cx="9.5" cy="14" r="1.5" fill="currentColor"/>' +
+    '<circle cx="14.5" cy="14" r="1.5" fill="currentColor"/>' +
+    '<path d="M12 8V4M9 4h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>' +
+    '</svg>';
+
+  function showEnd() {
+    botsTurnBtnEl.hidden = !game || !game.participants.some(function (p) { return p.bot; });
+    showScreen('end');
+  }
+
+  /**
+   * Indice donné par un robot. Les paires voisines dans la banque relèvent de
+   * la même famille de mots : on y pioche un mot du même univers que celui du
+   * robot, sans jamais reprendre l'un des deux mots de la partie.
+   */
+  function pickClue(ref) {
+    var forbidden = [game.words.civil.fr, game.words.under.fr];
+    var theme = ref ? themeById(ref.themeId) : WORD_BANK[randomInt(WORD_BANK.length)];
+    var count = theme.pairs.length;
+    var origin = ref ? ref.index : randomInt(count);
+    var pool = [];
+
+    for (var d = 1; d <= 3; d++) {
+      [(origin - d + count) % count, (origin + d) % count].forEach(function (index) {
+        var pair = theme.pairs[index];
+        pool.push(pair[0], pair[1]);
+      });
+    }
+
+    var fresh = pool.filter(function (word) {
+      return forbidden.indexOf(word) === -1 && game.usedClues.indexOf(word) === -1;
+    });
+    var usable = fresh.length ? fresh : pool.filter(function (word) {
+      return forbidden.indexOf(word) === -1;
+    });
+    var clue = usable[randomInt(usable.length)];
+    game.usedClues.push(clue);
+    return clue;
+  }
+
+  function clueFor(index) {
+    var key = index + ':' + game.round;
+    if (!game.clues[key]) {
+      var isUndercover = game.undercovers.indexOf(index) !== -1;
+      var words = isUndercover ? game.words.under : game.words.civil;
+      game.clues[key] = pickClue(words.ref);
+    }
+    return game.clues[key];
+  }
+
+  function renderBots() {
+    botsRoundEl.textContent = 'Tour ' + game.round;
+    var html = '';
+    game.participants.forEach(function (participant, index) {
+      if (!participant.bot) return;
+      var said = game.clues[index + ':' + game.round];
+      var out = game.eliminated[index];
+      var wasUndercover = game.undercovers.indexOf(index) !== -1;
+
+      html += '<div class="bot-row' + (out ? ' is-out' : '') + '">' +
+                '<span class="bot-avatar">' + BOT_ICON + '</span>' +
+                '<span class="bot-text">' +
+                  '<span class="bot-name">' + escapeHtml(participant.name) + '</span>' +
+                  (out
+                    ? '<span class="bot-verdict ' + (wasUndercover ? 'is-under' : 'is-civil') + '">' +
+                      (wasUndercover ? 'C\'était un UNDERCOVER' : 'C\'était un CIVIL') + '</span>'
+                    : said
+                      ? '<span class="bot-clue">' + escapeHtml(said) + '</span>'
+                      : '<span class="bot-waiting">n\'a pas encore parlé</span>') +
+                '</span>' +
+                (out ? '' :
+                  '<span class="bot-actions">' +
+                    (said ? '' :
+                      '<button class="btn btn-secondary bot-btn" data-action="bot-clue" data-bot="' +
+                      index + '">Faire parler</button>') +
+                    '<button class="btn btn-ghost bot-btn bot-out" data-action="bot-eliminate" data-bot="' +
+                    index + '">Éliminer</button>' +
+                  '</span>') +
+              '</div>';
+    });
+    botsListEl.innerHTML = html;
+  }
+
+  function openBots() {
+    renderBots();
+    showScreen('bots');
+  }
+
   /* ------------------------------------------------------------- Modales */
 
   var sheetEl = document.getElementById('sheet');
@@ -650,6 +814,7 @@
       '<li>Les civils ont tous le même mot. Les undercovers ont l\'autre mot de la paire.</li>' +
       '<li>Chacun décrit son mot avec <strong>un seul mot</strong>, à tour de rôle, sans le prononcer.</li>' +
       '<li>Après chaque tour, tout le monde vote et élimine un joueur.</li>' +
+      '<li>Si des robots jouent, l\'écran de fin permet de les faire parler à chaque tour, et de les éliminer pour découvrir leur rôle.</li>' +
       '<li>Les civils gagnent s\'ils éliminent tous les undercovers ; les undercovers gagnent s\'ils survivent jusqu\'à l\'égalité.</li>' +
     '</ol>' +
     '<p>Une paire de mots n\'est jamais tirée deux fois tant que la thématique n\'est pas épuisée.</p>';
@@ -730,6 +895,33 @@
 
       case 'install':
         promptInstall();
+        break;
+
+      case 'open-bots':
+        openBots();
+        break;
+
+      case 'bots-back':
+        showEnd();
+        break;
+
+      case 'bot-clue':
+        clueFor(parseInt(trigger.getAttribute('data-bot'), 10));
+        renderBots();
+        buzz(10);
+        break;
+
+      case 'bot-eliminate':
+        // Révèle le rôle du robot : c'est tout l'intérêt du vote contre lui.
+        var eliminated = parseInt(trigger.getAttribute('data-bot'), 10);
+        game.eliminated[eliminated] = true;
+        renderBots();
+        buzz(game.undercovers.indexOf(eliminated) !== -1 ? [14, 70, 14] : 18);
+        break;
+
+      case 'bots-next-round':
+        game.round++;
+        renderBots();
         break;
 
       case 'open-rules':
